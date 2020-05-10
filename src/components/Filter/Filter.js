@@ -9,7 +9,7 @@ const Filter = ({ handleChangeNameFilter, filterContacts }) => {
         name="filter"
         type="text"
         onChange={handleChangeNameFilter}
-        onInputCapture={filterContacts}
+        // onInputCapture={filterContacts}
       />
     </div>
   );

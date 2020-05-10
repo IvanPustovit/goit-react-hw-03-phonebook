@@ -15,7 +15,7 @@ class App extends Component {
       { id: "id-3", name: "Eden Clements", number: "645-17-79" },
       { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
     ],
-    filterContacts: [],
+
     filter: "",
     name: "",
     number: "",
@@ -26,27 +26,25 @@ class App extends Component {
     toast(`${name} is already in contacts`);
   };
 
-  addToContacts = e => {
+  addToContacts = (e) => {
     e.preventDefault();
     const { name, number } = this.state;
     const newContacts = { name: name, number: number, id: shortid.generate() };
 
-    this.isContact() !== true
-      ? name.length && number.length
-        ? this.setState(prev => ({
-            contacts: [newContacts, ...prev.contacts],
-            // filterContacts: [newContacts, ...prev.filterContacts],
-          }))
-        : this.notifyA()
-      : this.notifyB();
-
+    if (
+      this.state.contacts.find((contact) => contact.name === this.state.name)
+    ) {
+      this.notifyB();
+    } else {
+      this.setState((prev) => ({ contacts: [...prev.contacts, newContacts] }));
+    }
     this.setState({
       name: "",
       number: "",
     });
   };
 
-  inputHandler = e => {
+  inputHandlerContact = (e) => {
     const name = e.target.name;
     const value = e.target.value;
     this.setState({
@@ -54,36 +52,24 @@ class App extends Component {
     });
   };
 
-  filterContacts = e => {
-    e.preventDefault();
-    e.persist();
-    const { contacts } = this.state;
-    this.setState(() => {
-      const filterContacts = contacts.filter(
-        el =>
-          el.name.toLowerCase().includes(e.target.value) ||
-          el.number.toLowerCase().includes(e.target.value),
-      );
-      return {
-        filterContacts,
-      };
-    });
-  };
+  getFilterContacts = (filter, contacts) =>
+    contacts.filter(({ name }) =>
+      name.toLocaleLowerCase().includes(filter.toLocaleLowerCase()),
+    );
 
-  deleteContact = id => {
+  deleteContact = (id) => {
     const { contacts } = this.state;
-    const ContactListNew = contacts.filter(el => el.id !== id);
+    const ContactListNew = contacts.filter((el) => el.id !== id);
 
     this.setState({
       contacts: ContactListNew,
-      // filterContacts: ContactListNew,
     });
   };
 
-  isContact = e => {
+  isContact = (e) => {
     const { name, contacts } = this.state;
     return contacts.some(
-      el => el.name.toLocaleLowerCase() === name.toLocaleLowerCase(),
+      (el) => el.name.toLocaleLowerCase() === name.toLocaleLowerCase(),
     );
   };
 
@@ -100,21 +86,24 @@ class App extends Component {
     if (prevState.contacts !== this.state.contacts) {
       storage.save("contacts", this.state.contacts);
     }
-    console.log(this.state.filterContacts);
   }
 
   contactsId = shortid.generate();
   render() {
-    const { name, number, contacts, filter, filterContacts } = this.state;
+    const { name, number, contacts, filter } = this.state;
+    const filteredContacts = this.getFilterContacts(
+      this.state.filter,
+      this.state.contacts,
+    );
 
     return (
       <div>
         <h1>Phonebook</h1>
         <ContactForm
-          handleChangeName={this.inputHandler}
+          handleChangeName={this.inputHandlerContact}
           nameValue={name}
           numberValue={number}
-          handleChangeNumber={this.inputHandler}
+          handleChangeNumber={this.inputHandlerContact}
           addToContacts={this.addToContacts}
           contactsId={this.contactsId}
           isContact={this.isContact}
@@ -122,14 +111,14 @@ class App extends Component {
 
         <h2>Contacts</h2>
         <Filter
-          handleChangeNameFilter={this.inputHandler}
-          filterContacts={this.filterContacts}
+          handleChangeNameFilter={this.inputHandlerContact}
+          // filterContacts={this.filterContacts}
           contacts={contacts}
           filter={filter}
         />
         <ContactList
           contacts={contacts}
-          filterContacts={filterContacts}
+          filterContacts={filteredContacts}
           deleteContact={this.deleteContact}
         />
       </div>
